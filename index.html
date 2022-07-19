@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>章節挑戰</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="images/favicon.ico" rel="shortcut icon">
+  <meta charset="UTF-8">
+  <script src="./javascripts/vendor.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.2/vue.global.js"></script>
+</head>
+
+<body class="bg-lighter">
+  <div class="container main my-4">
+    <div class="row">
+      <main class="col post">
+        <!-- 章節標題 -->
+        <div class="mb-4">
+          <h1 class="mt-0 text-muted">Vue3 第三次作業 - 旅遊景點查詢</h1>
+        </div>
+        <!-- 🔥🔥練習開始🔥🔥 -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+        <div id="app" class="mt-2">
+          <div class="row h-100">
+            <div class="col-md-3 h-100 d-flex flex-column">
+              <div class="form-floating mb-2">
+                <input v-model="cacheSearch" type="text" class="form-control" id="search" placeholder="search">
+                <label for="search">search</label>
+              </div>
+              <div class="list-group option mb-2 mb-md-0" style="height: 500px; overflow-y: scroll;">
+                <label class="list-group-item" v-for="(item, keys) in searchFilter" :key="keys + item.Name">
+                  <input @click="getCacheData(item)" class="form-check-input me-1" type="radio" name="area"
+                    :value="item.Name" :checked="item.Name == cacheArea.Name">
+                  {{ item.Name }}
+                </label>
+              </div>
+            </div>
+            <div class="col-md-9 h-100 d-flex flex-column">
+              <div class="form-floating">
+                <select id="cacheArea" class="form-select w-50 w-md-100 mb-2" aria-label="select example" v-model="cacheArea">
+                  <option selected value="" disabled>瀏覽紀錄</option>
+                  <!-- 為什麼value寫item.Name時，點選地點後瀏覽紀錄第一格是呈現空的，並且透過瀏覽紀錄點選地點，option會無法抓到Name  -->
+                  <!-- 使用item，打開開發人員工具查看vale卻是[object object]，打開select點擊地點也能抓得到資料（我在想這跟v-model="cacheArea"，不過還是沒走辦法想像完整流程）-->
+                  <option v-for="(item, keys) in browseLog" :value="item">{{ keys + 1 }} - {{ item.Name }}</option>
+                </select>
+                <label for="cacheArea">瀏覽紀錄</label>
+              </div>
+              <div class="card">
+                <div v-if="cacheArea" class="d-flex flex-wrap" style="min-height: 500px;">
+                  <div class="col-12 col-lg-5">
+                    <div class="h-100" style="display: grid; grid-template-rows: 50% 50%;">
+                      <img :src="cacheArea.Picture1" class="p-0 p-md-3" :alt="cacheArea.Name" style="object-fit: cover; width:100%; height: 100%;">
+                      <iframe class="p-0 p-md-3 pt-md-0" width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                      :src=`https://maps.google.com.tw/maps?f=q&hl=zh-TW&geocode=&q=${cacheArea.Py},${cacheArea.Px}(${cacheArea.Name})&z=16&output=embed`></iframe>
+                    </div>
+                  </div>
+                  <div class="col-12 col-lg-7">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ cacheArea.Name }}</h5>
+                      <p>{{ cacheArea.Description }}</p>
+                      <ul>
+                        <li><p>電話：{{ cacheArea.Tel }}</p></li>
+                        <li><p>開放時間：{{ cacheArea.Opentime }}</p></li>
+                        <li><p>地址：{{ cacheArea.Add }}</p></li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  
+                </div>
+                <div v-else class="card-body">
+                  請選擇場域
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          const App = {
+            data() {
+              return {
+                datastore: [],
+                cacheArea: '',
+                cacheSearch: '',
+                browseLog: [],
+              };
+            },
+            methods: {
+              // 取得遠端資料
+              getData() {
+                const apiUrl = 'https://raw.githubusercontent.com/hexschool/KCGTravel/master/datastore_search.json';
+                // 成功
+                axios.get(apiUrl).then((res) => {
+                  this.datastore = res.data.result.records;
+                  // console.log(this.datastore);
+                }),
+                  // 失敗
+                  axios.get(apiUrl).catch((err) => {
+                    console.log(`遠端資料無法存取，錯誤代碼${err.response.status}`)
+                  })
+              },
+              // 取得所選資料
+              getCacheData(item) {
+                this.cacheArea = { ...item }
+              }
+            },
+            computed: {
+              // 關鍵字搜索
+              searchFilter() {
+                return this.datastore.filter((item) => item.Name.match(this.cacheSearch))
+              },
+            },
+            watch: {
+              cacheArea() {
+                // 暫存紀錄最高到10
+                if (this.browseLog.length >= 10) {
+                  this.browseLog.shift();
+                }
+                this.browseLog.push(this.cacheArea);
+              }
+            },
+            // 初始化
+            created() {
+              this.getData();
+            }
+          };
+
+          Vue.createApp(App).mount('#app');
+        </script>
+
+        <style>
+          #app {
+            /* height: 500px; */
+          }
+
+          .option {
+            overflow-y: auto;
+          }
+        </style>
+
+        <!-- 🙇🙇練習結束🙇🙇 -->
+      </main>
+
+      
+      <link rel="stylesheet" href="./stylesheets/all.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    </div>
+  </div>
+  <div class="container-fluid p-0">
+    <footer class="footer py-2 bg-light">
+      <div class="container text-center">
+        <small class="text-black-50 fw-light mb-0">六角學院 Vue 課程專屬文件</small>
+      </div>
+    </footer>
+  </div>
+</body>
+
+</html>

@@ -91,13 +91,11 @@
               // 取得遠端資料
               getData() {
                 const apiUrl = 'https://raw.githubusercontent.com/hexschool/KCGTravel/master/datastore_search.json';
-                // 成功
+                // 成功、失敗
                 axios.get(apiUrl).then((res) => {
                   this.datastore = res.data.result.records;
                   // console.log(this.datastore);
-                }),
-                  // 失敗
-                  axios.get(apiUrl).catch((err) => {
+                }).catch((err) => {
                     console.log(`遠端資料無法存取，錯誤代碼${err.response.status}`)
                   })
               },
